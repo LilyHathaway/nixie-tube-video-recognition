@@ -30,6 +30,7 @@ vscode左边的
 ## 安装环境
 打开终端窗口：vscode菜单栏-Terminal-New Terminal
 输入下列命令行后按回车：（国内用的清华镜像）
+
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ## 修改视频路径
