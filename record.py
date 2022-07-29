@@ -6,9 +6,11 @@ import os
 import xlwt
 
 model_path = "imgs\\model.jpg"
-video_path = "video\\000.mp4"
+video_path = "video\\6.mp4"
 cut_path = 'cut\\'
 excel_path = 'excel.xls'
+get_fat=20  #把数字轮廓变胖，不然有些太暗的数字线条连不到一块，数值越大越胖，画面越近，数值应调小
+height=150  #数字比对阈值，高度比这个值大的判断为数字，单位像素，如果判断的数字数量不对，试着调一下这个
 
 
 def model(model_path):
@@ -70,7 +72,7 @@ def scan_img(key,img_path,digits):
     img_thresh = cv2.morphologyEx(img_thresh, cv2.MORPH_OPEN, img_kernel)
     # cv2.imwrite('cut\\img_thresh'+ str(key) +'.png', img_thresh)
     # 膨胀
-    peng = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50)) #矩形结构
+    peng = cv2.getStructuringElement(cv2.MORPH_RECT, (get_fat, get_fat)) #矩形结构
     dilation = cv2.dilate(img_thresh, peng)
     
     # 计算轮廓
@@ -86,7 +88,7 @@ def scan_img(key,img_path,digits):
         # 计算矩形
         (x, y, w, h) = cv2.boundingRect(c)
     
-        if 200 < h :
+        if height < h :
             # 符合的留下来
             locs.append((x, y, w, h))
         else:
@@ -109,13 +111,15 @@ def scan_img(key,img_path,digits):
         groupOutput = []
     
         # 根据坐标提取每一个组
-        group = img_thresh[gY - 5:gY + gH + 5, gX - 5:gX + gW + 5]
+        group = img_thresh[gY :gY + gH + 5, gX :gX + gW + 5]
+        # print("x---",gX,"y---",gY,"w---",gW,"h----",gH)
+        # cv2.imwrite('cut\\img_each'+ str(key) +'.png', img_thresh)
     
         # 预处理
         group = cv2.threshold(group, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
 
         #膨胀
-        peng = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50)) #矩形结构
+        peng = cv2.getStructuringElement(cv2.MORPH_RECT, (get_fat, get_fat)) #矩形结构
         dilation = cv2.dilate(group, peng)
     
         # 计算每一组的轮廓
@@ -218,5 +222,5 @@ if __name__ == '__main__':
     result = []
     for key,i in enumerate(imgs_path):
         result.append(scan_img(key,cut_path + i,digits))
-    print(result)
+    # print(result)
     save_excel(result)
