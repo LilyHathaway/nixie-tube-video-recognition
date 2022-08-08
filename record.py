@@ -6,7 +6,7 @@ import os
 import xlwt
 
 model_path = "imgs\\model.jpg"
-video_path = "video\\6.mp4"
+video_path = "video\\000.mp4"
 cut_path = 'cut\\'
 excel_path = 'excel.xls'
 get_fat=20  #把数字轮廓变胖，不然有些太暗的数字线条连不到一块，数值越大越胖，画面越近，数值应调小
@@ -53,8 +53,8 @@ def model(model_path):
         digits[i] = roi
     return digits
 
-def scan_img(key,img_path,digits):
-    img = cv2.imread(img_path)
+def scan_img(key,img,digits):
+    # img = cv2.imread(img_path)
     # 将输入图片裁剪到固定大小
     img = imutils.resize(img, height=500)
     # 将输入转换为灰度图片
@@ -163,14 +163,6 @@ def scan_img(key,img_path,digits):
     # cv2.imwrite(dir + "contrast.jpg", contrast)
     return re
 
-def saveImage(frame, SaveAddress, num):
-    try:
-        address = SaveAddress + "/" + str(num) + '.jpg'
-        cv2.imencode('.jpg', frame)[1].tofile(address)
-        # print(num)
-    except Exception:
-        print(address)
-
 def del_files(dir_path):
     if os.path.isfile(dir_path):
         try:
@@ -186,7 +178,7 @@ def del_files(dir_path):
 
 def cut_video(video_path):
     i = 0
-    j = 0
+    imgs = []
     del_files(cut_path)
     if not os.path.exists(cut_path):
         os.mkdir(cut_path)
@@ -200,10 +192,10 @@ def cut_video(video_path):
         rval, frame = videoCapture.read()
         i += 1
         if (i%timeF==0):
-            j += 1
-            saveImage(frame, cut_path, j)
+            imgs.append(frame)
             cv2.waitKey(1) #延时1ms
     videoCapture.release() #释放视频对象
+    return imgs
 
 def save_excel(re):
     if os.path.exists(excel_path):
@@ -216,11 +208,10 @@ def save_excel(re):
     book.save(excel_path)
 
 if __name__ == '__main__':
-    cut_video(video_path)
-    imgs_path = os.listdir(cut_path)
+    imgs = cut_video(video_path)
     digits = model(model_path)
     result = []
-    for key,i in enumerate(imgs_path):
-        result.append(scan_img(key,cut_path + i,digits))
+    for key,img in enumerate(imgs):
+        result.append(scan_img(key,img,digits))
     # print(result)
     save_excel(result)
