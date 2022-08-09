@@ -4,6 +4,7 @@ import imutils
 from imutils import contours
 import os
 import xlwt
+import sys
 
 model_path = "imgs\\model.jpg"
 video_path = "video\\000.mp4"
@@ -208,10 +209,20 @@ def save_excel(re):
     book.save(excel_path)
 
 if __name__ == '__main__':
+    print("开始视频处理....")
     imgs = cut_video(video_path)
+    print("截图完毕....")
     digits = model(model_path)
+    print("模板分析完毕....")
     result = []
+    size = len(imgs)
+    print("开始图像识别....")
     for key,img in enumerate(imgs):
         result.append(scan_img(key,img,digits))
+        cur = int((key+1)/size*100)
+        print("\r", end="")
+        print("进度: {}%: ".format(cur), "▓" * (cur // 2), end="")
+        sys.stdout.flush()
     # print(result)
     save_excel(result)
+    print("\n结果保存完毕，路径---{}".format(excel_path))
