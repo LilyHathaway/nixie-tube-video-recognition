@@ -7,7 +7,7 @@ import xlwt
 import sys
 
 model_path = "imgs\\model.jpg"
-video_path = "video\\000.mp4"
+video_path = "video\\2.mov"
 cut_path = 'cut\\'
 excel_path = 'excel.xls'
 get_fat=20  #把数字轮廓变胖，不然有些太暗的数字线条连不到一块，数值越大越胖，画面越近，数值应调小
@@ -160,7 +160,7 @@ def scan_img(key,img,digits):
     # contrast = np.hstack((img, result))
     
     # 保存结果
-    cv2.imwrite(cut_path + "result" + str(key) + ".jpg", result)
+    cv2.imwrite(cut_path + "result" + str(key+1) + ".jpg", result)
     # cv2.imwrite(dir + "contrast.jpg", contrast)
     return re
 
@@ -179,21 +179,32 @@ def del_files(dir_path):
 
 def cut_video(video_path):
     i = 0
+    j = 0
     imgs = []
+    rval = True
     del_files(cut_path)
     if not os.path.exists(cut_path):
         os.mkdir(cut_path)
     videoCapture = cv2.VideoCapture(video_path)
+    # TODO 咋就一直打不开呢？？？
     if videoCapture.isOpened():  # 判断是否正常打开
-        timeF = int(videoCapture.get(cv2.CAP_PROP_FPS)) #视频帧计数间隔频率
-        rval, frame = videoCapture.read()
+        # timeF = int(videoCapture.get(cv2.CAP_PROP_FPS)) #视频帧计数间隔频率
+        rate = videoCapture.get(5)
+        frame_num = videoCapture.get(7)
+        duration = int(frame_num / rate)
+        # print(duration)
     else:
-        rval = False
+        return imgs
     while rval:
         rval, frame = videoCapture.read()
         i += 1
-        if (i%timeF==0):
+        if (i%rate==0):
             imgs.append(frame)
+            j += 1
+            cur = int(j/duration*100)
+            print("\r", end="")
+            print("进度: {}%: ".format(cur), "▓" * (cur // 2), end="")
+            sys.stdout.flush()
             cv2.waitKey(1) #延时1ms
     videoCapture.release() #释放视频对象
     return imgs
@@ -211,7 +222,10 @@ def save_excel(re):
 if __name__ == '__main__':
     print("开始视频处理....")
     imgs = cut_video(video_path)
-    print("截图完毕....")
+    if len(imgs) == 0:
+        print("视频打开失败....")
+        sys.exit(0)
+    print("\n截图完毕....")
     digits = model(model_path)
     print("模板分析完毕....")
     result = []
