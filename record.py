@@ -7,7 +7,7 @@ import xlwt
 import sys
 
 model_path = "imgs\\model.jpg"
-video_path = "video\\2.mov"
+video_path = "video\\000.mp4"
 cut_path = 'cut\\'
 excel_path = 'excel.xls'
 get_fat=20  #把数字轮廓变胖，不然有些太暗的数字线条连不到一块，数值越大越胖，画面越近，数值应调小
@@ -186,19 +186,16 @@ def cut_video(video_path):
     if not os.path.exists(cut_path):
         os.mkdir(cut_path)
     videoCapture = cv2.VideoCapture(video_path)
-    # TODO 咋就一直打不开呢？？？
     if videoCapture.isOpened():  # 判断是否正常打开
-        # timeF = int(videoCapture.get(cv2.CAP_PROP_FPS)) #视频帧计数间隔频率
-        rate = videoCapture.get(5)
+        timeF = int(videoCapture.get(cv2.CAP_PROP_FPS)) #视频帧计数间隔频率
         frame_num = videoCapture.get(7)
-        duration = int(frame_num / rate)
-        # print(duration)
+        duration = int(frame_num / timeF)  #视频时长
     else:
         return imgs
     while rval:
         rval, frame = videoCapture.read()
         i += 1
-        if (i%rate==0):
+        if (i%timeF==0):
             imgs.append(frame)
             j += 1
             cur = int(j/duration*100)
