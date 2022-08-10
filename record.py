@@ -7,7 +7,7 @@ import xlwt
 import sys
 
 model_path = "imgs\\model.jpg"
-video_path = "video\\000.mp4"
+video_path = "video\\6.mp4"
 cut_path = 'cut\\'
 excel_path = 'excel.xls'
 get_fat=20  #把数字轮廓变胖，不然有些太暗的数字线条连不到一块，数值越大越胖，画面越近，数值应调小
@@ -55,6 +55,8 @@ def model(model_path):
     return digits
 
 def scan_img(key,img,digits):
+    if img is None:
+        return 0
     # img = cv2.imread(img_path)
     # 将输入图片裁剪到固定大小
     img = imutils.resize(img, height=500)
@@ -165,17 +167,18 @@ def scan_img(key,img,digits):
     return re
 
 def del_files(dir_path):
-    if os.path.isfile(dir_path):
-        try:
+    try:
+        if os.path.isfile(dir_path):
             os.remove(dir_path) # 这个可以删除单个文件，不能删除文件夹
-        except BaseException as e:
-            print(e)
-    elif os.path.isdir(dir_path):
-        file_lis = os.listdir(dir_path)
-        for file_name in file_lis:
-            # if file_name != 'wibot.log':
-            tf = os.path.join(dir_path, file_name)
-            del_files(tf)
+        elif os.path.isdir(dir_path):
+            file_lis = os.listdir(dir_path)
+            for file_name in file_lis:
+                tf = os.path.join(dir_path, file_name)
+                del_files(tf)
+    except WindowsError:
+        return False
+    else:
+        return True
 
 def cut_video(video_path):
     i = 0
@@ -217,6 +220,10 @@ def save_excel(re):
     book.save(excel_path)
 
 if __name__ == '__main__':
+    print("检查结果保存路径...")
+    if not del_files(excel_path):
+        print("另一个程序正在使用此文件，进程无法访问: '{}'".format(excel_path))
+        sys.exit(0)
     print("开始视频处理....")
     imgs = cut_video(video_path)
     if len(imgs) == 0:
